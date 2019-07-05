@@ -1,0 +1,23 @@
+version: "3"
+services:
+
+  server:
+    build: .
+    command: bash -c "cd /KTasking/.build/x86_64-unknown-linux/debug && ./KTaskingAPI"
+    depends_on:
+      - taskdb
+    ports:
+      - 8080:8080
+    environment:
+      DBHOST: taskdb
+
+  taskdb:
+    image: postgres
+    restart: always
+    volumes:
+      - "./pgdata:/var/lib/postgresql/data/pgdata"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: ktasking
+      PGDATA: /var/lib/postgresql/data/pgdata
+
