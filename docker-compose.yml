@@ -3,7 +3,7 @@ services:
 
   server:
     build: .
-    command: bash -c "cd /KTasking/.build/x86_64-unknown-linux/debug && ./KTaskingAPI"
+    command: bash -c "while !</dev/tcp/taskdb/5432; do sleep 1; done; cd /KTasking/.build/x86_64-unknown-linux/debug && ./KTaskingAPI"
     depends_on:
       - taskdb
     ports:
@@ -14,8 +14,8 @@ services:
   taskdb:
     image: postgres
     restart: always
-    volumes:
-      - "./pgdata:/var/lib/postgresql/data/pgdata"
+    # volumes:
+    #   - "./pgdata:/var/lib/postgresql/data/pgdata"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: ktasking
