@@ -31,11 +31,11 @@ app.router.post("/goals", handler: addGoal)
 ```
 ```swift
 func addGoal(goal: Goal, completion: @escaping (Goal?, RequestError?) -> Void) {
-	var newGoal = goal
-	newGoal.id = UUID().uuidString
-	newGoal.createdAt = Date()
-	// auth and insertion operations here
-	completion(newGoal, nil)
+    var newGoal = goal
+    newGoal.id = UUID().uuidString
+    newGoal.createdAt = Date()
+    // auth and insertion operations here
+    completion(newGoal, nil)
 }
 ```
 Sample `/goals` post request:
@@ -57,22 +57,22 @@ An ORM (Object Relational Mapping) library built for Swift. Using it allows you 
  -   Establishing connection (<i> sample code </i>)
  ```swift
  let pool: SwiftKuery.ConnectionPool = {
-		return PostgreSQLConnection.createPool(
-			host: ProcessInfo.processInfo.environment["DBHOST"] ?? "localhost",
-			port: 5432,
-			options: [
-				.databaseName("ktasking"),
-				.userName(ProcessInfo.processInfo.environment["DBUSER"] ?? "postgres"),
-				.password(ProcessInfo.processInfo.environment["DBPASSWORD"] ?? "nil"),
-			],
-			poolOptions: ConnectionPoolOptions(initialCapacity: 10, maxCapacity: 50, timeout: 10000))
-		}()
+     return PostgreSQLConnection.createPool(
+         host: ProcessInfo.processInfo.environment["DBHOST"] ?? "localhost",
+	     port: 5432,
+	     options: [
+	         .databaseName("ktasking"),
+	         .userName(ProcessInfo.processInfo.environment["DBUSER"] ?? "postgres"),
+	         .password(ProcessInfo.processInfo.environment["DBPASSWORD"] ?? "nil"),
+	     ],
+	     poolOptions: ConnectionPoolOptions(initialCapacity: 10, maxCapacity: 50, timeout: 10000))
+}()
 		
 func setUp() {
-	Database.default = Database(pool)
-	try? User.createTableSync()
-	try? Goal.createTableSync()
-	try? Task.createTableSync()
+    Database.default = Database(pool)
+    try? User.createTableSync()
+    try? Goal.createTableSync()
+    try? Task.createTableSync()
 }
  ```
 
@@ -80,8 +80,8 @@ func setUp() {
 
 ```swift
 func getGoals(params: GoalParams?, completion: @escaping ([Goal]?, RequestError?) -> Void) {
-	// auth operation here
-	Goal.findAll(matching: params, completion)
+    // auth operation here
+    Goal.findAll(matching: params, completion)
 }
 ```
 Note: You can define URL parameters making a struct that implements `QueryParams` protocol.
@@ -95,44 +95,44 @@ let jwtSigner = JWTSigner.hs256(key: Data(jwtKey.utf8))
 let jwtVerifier = JWTVerifier.hs256(key: Data(jwtKey.utf8))
 
 func sendToken(by userCredentials: UserCredentials, statusCode: RequestError?,_ completion: @escaping(TokenResponse?, RequestError?) -> Void) {
-	do {
-		let claims = ClaimsStandardJWT(iss: jwtKey, sub: userCredentials.username, exp: Date(timeIntervalSinceNow: 3600))
-		var jwt = JWT(claims: claims)
-		let token = try jwt.sign(using: jwtSigner)
-		completion(TokenResponse(token: token), statusCode)
-	} catch _ {
-		completion(nil, .internalServerError)
-	}
+    do {
+        let claims = ClaimsStandardJWT(iss: jwtKey, sub: userCredentials.username, exp: Date(timeIntervalSinceNow: 3600))
+	var jwt = JWT(claims: claims)
+	let token = try jwt.sign(using: jwtSigner)
+	completion(TokenResponse(token: token), statusCode)
+    } catch _ {
+        completion(nil, .internalServerError)
+    }
 }
 ```
 Now, you can create a TypeSafeMiddleware and add it as a parameter in a route to perform the authentication of a user.
 ```swift
 struct TypeSafeJWT<C: Claims>: TypeSafeMiddleware {
-	let jwt: JWT<C>
-	
-	static func handle(request: RouterRequest, response: RouterResponse, completion: @escaping (TypeSafeJWT?, RequestError?) -> Void) {
-	let authHeader = request.headers["Authorization"]
+    let jwt: JWT<C>
+
+    static func handle(request: RouterRequest, response: RouterResponse, completion: @escaping (TypeSafeJWT?, RequestError?) -> Void) {
+        let authHeader = request.headers["Authorization"]
 	guard let authComponents = authHeader?.components(separatedBy: " "), 
-		authComponents.count == 2, 
-		authComponents[0] == "Bearer",
-		let jwt = try? JWT<C>(jwtString: authComponents[1], verifier: App.jwtVerifier)
-		else {
-			return completion(nil, .unauthorized)
-		}
-		completion(TypeSafeJWT(jwt: jwt), **nil**)
+	    authComponents.count == 2, 
+	    authComponents[0] == "Bearer",
+	    let jwt = try? JWT<C>(jwtString: authComponents[1], verifier: App.jwtVerifier)
+	    else {
+	        return completion(nil, .unauthorized)
+	    }
+	    completion(TypeSafeJWT(jwt: jwt), **nil**)
 	}
 }
 ```
 
 ```swift
 func getGoals(typeSafeJWT: TypeSafeJWT<ClaimsStandardJWT>, params: GoalParams?, completion: @escaping ([Goal]?, RequestError?) -> Void) {
-	guard let userName = typeSafeJWT.jwt.claims.sub else {
-		return completion(nil, .unauthorized)
-	}
-	let goalParams = UserGoalsParams(user: userName, goalName: params?.name)
-	Worker.queue.execute {
-		Goal.findAll(matching: goalParams, completion)
-	}
+    guard let userName = typeSafeJWT.jwt.claims.sub else {
+        return completion(nil, .unauthorized)
+    }
+    let goalParams = UserGoalsParams(user: userName, goalName: params?.name)
+    Worker.queue.execute {
+        Goal.findAll(matching: goalParams, completion)
+    }
 }
 ```
 
