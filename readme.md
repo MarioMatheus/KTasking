@@ -2,7 +2,7 @@
 
 ## Overview
 KTasking is a Restful API implemented using Kitura.
-Kitura is a framework and web server for web services written in Swift. For more informations, visit [Kitura](www.kitura.io).
+Kitura is a framework and web server for web services written in Swift. For more informations, visit [Kitura](https://www.kitura.io).
 
 The project uses features such as Codable routing, URL parameters, Postgres database using SwiftKueryORM, a TypeSafeMiddleware with JWT auth to access some resources.
 KTasking also uses api swagger to generate the documentation, which can be accessed on the `/openapi/ui` route, for api consumption.
